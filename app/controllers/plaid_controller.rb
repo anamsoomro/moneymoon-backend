@@ -15,78 +15,79 @@ class PlaidController < ApplicationController
   @@item_id = nil
 
 
+  # on user adding new institution
   def getAccessToken 
+    # get access
     exchange_token_response = @@client.item.public_token.exchange(params['public_token'])
-    @@access_token = exchange_token_response['access_token']
-    @@item_id = exchange_token_response['item_id']
-
     #  everytime you link it, it gives a new access token a new item_id?? y
     # "{"access_token":"access-sandbox-35cda5a6-fa6e-4aab-96ae-7c7d2e182533","item_id":"X49RJrkwmEhkMxD8brZyhznPWzgdL8fdKpxBX","request_id":"RfhSal2vZKKEkc7"}"
+    access_token = exchange_token_response['access_token']
+    item_id = exchange_token_response['item_id']
+
+    # create plaid item (institution) to db
     user = User.find(params['user_id'])
     pi = PlaidItem.create({
-      p_access_token: @@access_token,
+      p_access_token: access_token,
       user_id: user.id,
-      p_item_id: @@item_id
+      p_item_id: item_id
     })
 
     # get last 30 days of transactions from all accounts in item
     now = Date.today
     thirty_days_ago = (now - 30)
     begin
-      product_response = @@client.transactions.get(@@access_token, thirty_days_ago, now)
-      # render json: product_response
+      product_response = @@client.transactions.get(access_token, thirty_days_ago, now)
       transactions = product_response
     rescue Plaid::PlaidAPIError => e
       error_response = format_error(e)
-      # render json: error_response
       transactions = error_response
     end
 
     #get balances for each account of an item
     begin
-      product_response = @@client.accounts.balance.get(@@access_token)
-      # pretty_print_response(product_response)
-      # content_type :json
-      # { balance: product_response }.to_json
+      product_response = @@client.accounts.balance.get(access_token)
       accounts = product_response
     rescue Plaid::PlaidAPIError => e
       error_response = format_error(e)
-      # pretty_print_response(error_response)
-      # content_type :json
-      # error_response.to_json
       accounts = error_response
     end
 
     render json: {transactions: transactions, accounts: accounts}
   end
 
-  def getTransactions
+  def getAccountData
+    # account will have many institutions
+    # need to make fetch for each instiitution and consolidate 
+    user = User.find(params['user_id']) # no i need to get the account account.plaid_items
+    user.plaid_items
+  end
+
+
+  # on login im going to want to getTransactioins and balances with a user's access token 
+
+  def getTransactions(access_token)
     now = Date.today
     thirty_days_ago = (now - 30)
     begin
     product_response = @@client.transactions.get(@@access_token, thirty_days_ago, now)
-    render json: product_response
+    transactions = product_response
     rescue Plaid::PlaidAPIError => e
     error_response = format_error(e)
-    render json: error_response
+    transactions =  error_response
     end
+    return transactions 
   end
 
-  def getBalances
+  def getBalances(access_token)
     # THIS DOESNT HAVE A ROUTE. ITS FOR REF RIGHT NOW 
     begin
-      product_response = @@client.accounts.balance.get(@@access_token)
-      # pretty_print_response(product_response)
-      # content_type :json
-      # { balance: product_response }.to_json
-      render json: product_response
+      product_response = @@client.accounts.balance.get(access_token)
+      balances = product_response
     rescue Plaid::PlaidAPIError => e
       error_response = format_error(e)
-      # pretty_print_response(error_response)
-      # content_type :json
-      # error_response.to_json
-      render json: error_response
+      balances = error_response
     end
+    return balances
   end
 
 
