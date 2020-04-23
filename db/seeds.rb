@@ -21,13 +21,13 @@ sik = User.create({
 
 anamPi = PlaidItem.create({
   user_id: anam.id,
-  p_institution_id: "inst id from plaid",
+  p_access_token: "item token from plaid",
   p_item_id: "item id from plaid"
 })
 
 sikPi = PlaidItem.create({
   user_id: sik.id,
-  p_institution_id: "inst id from plaid",
+  p_access_token: "item token from plaid",
   p_item_id: "item id from plaid"
 })
 
