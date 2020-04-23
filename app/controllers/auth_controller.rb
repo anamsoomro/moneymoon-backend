@@ -1,19 +1,18 @@
 class AuthController < ApplicationController
 
   skip_before_action :verify_authenticity_token
-  skip_before_action :logged_in?, only: [:create]
+  skip_before_action :logged_in?, only: [:create] # no auth to sign in 
 
 
   def create 
     # post request will have body with username and password
-    user = User.find_by(username: params[:username])
-    # if right, we give them a token encoded in application controller 
-    if user && user.authenticate(params[:password]) #authenticate method to check password against saved hash using bcrypt gem
+    user = User.find_by(username: params[:username]) # find the user
+    if user && user.authenticate(params[:password]) # auth method from bcrypt to check password against saved hash
       render json: {
         username: user.username, 
         user_id: user.id, 
         account_id: user.account_id,
-        token: encode_token({user_id: user.id})
+        token: encode_token({user_id: user.id}) # and give them a token authorizing them for the rest of app 
       }
     else 
       render json: {error: "invalid username or password"}

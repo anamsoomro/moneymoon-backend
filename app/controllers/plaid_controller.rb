@@ -21,6 +21,7 @@ class PlaidController < ApplicationController
     @@item_id = exchange_token_response['item_id']
 
     #  everytime you link it, it gives a new access token a new item_id?? y
+    # "{"access_token":"access-sandbox-35cda5a6-fa6e-4aab-96ae-7c7d2e182533","item_id":"X49RJrkwmEhkMxD8brZyhznPWzgdL8fdKpxBX","request_id":"RfhSal2vZKKEkc7"}"
     user = User.find(params['user_id'])
     pi = PlaidItem.create({
       p_access_token: @@access_token,
@@ -28,32 +29,65 @@ class PlaidController < ApplicationController
       p_item_id: @@item_id
     })
 
-    # get transactions
+    # get last 30 days of transactions from all accounts in item
     now = Date.today
     thirty_days_ago = (now - 30)
     begin
       product_response = @@client.transactions.get(@@access_token, thirty_days_ago, now)
+      # render json: product_response
+      transactions = product_response
+    rescue Plaid::PlaidAPIError => e
+      error_response = format_error(e)
+      # render json: error_response
+      transactions = error_response
+    end
+
+    #get balances for each account of an item
+    begin
+      product_response = @@client.accounts.balance.get(@@access_token)
+      # pretty_print_response(product_response)
+      # content_type :json
+      # { balance: product_response }.to_json
+      accounts = product_response
+    rescue Plaid::PlaidAPIError => e
+      error_response = format_error(e)
+      # pretty_print_response(error_response)
+      # content_type :json
+      # error_response.to_json
+      accounts = error_response
+    end
+
+    render json: {transactions: transactions, accounts: accounts}
+  end
+
+  def getTransactions
+    now = Date.today
+    thirty_days_ago = (now - 30)
+    begin
+    product_response = @@client.transactions.get(@@access_token, thirty_days_ago, now)
+    render json: product_response
+    rescue Plaid::PlaidAPIError => e
+    error_response = format_error(e)
+    render json: error_response
+    end
+  end
+
+  def getBalances
+    # THIS DOESNT HAVE A ROUTE. ITS FOR REF RIGHT NOW 
+    begin
+      product_response = @@client.accounts.balance.get(@@access_token)
+      # pretty_print_response(product_response)
+      # content_type :json
+      # { balance: product_response }.to_json
       render json: product_response
     rescue Plaid::PlaidAPIError => e
       error_response = format_error(e)
+      # pretty_print_response(error_response)
+      # content_type :json
+      # error_response.to_json
       render json: error_response
     end
-
-    # render json: pi
-    # "{"access_token":"access-sandbox-35cda5a6-fa6e-4aab-96ae-7c7d2e182533","item_id":"X49RJrkwmEhkMxD8brZyhznPWzgdL8fdKpxBX","request_id":"RfhSal2vZKKEkc7"}"
   end
-
-  # def getTransactions
-  #   now = Date.today
-  #   thirty_days_ago = (now - 30)
-  #   begin
-  #   product_response = @@client.transactions.get(@@access_token, thirty_days_ago, now)
-  #   render json: product_response
-  #   rescue Plaid::PlaidAPIError => e
-  #   error_response = format_error(e)
-  #   render json: error_response
-  #   end
-  # end
 
 
   def format_error(err)
