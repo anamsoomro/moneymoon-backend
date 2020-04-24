@@ -59,13 +59,12 @@ class PlaidController < ApplicationController
   # on page load
   def getData
     # account will have many institutions
-    # need to make fetch for each institution and consolidate 
+    # make fetch for each institution and consolidate 
     transactions = []
     accounts = []
     account = Account.find(params['id']) # get their account
     plaidItems = account.plaid_items # get all items related to their account
     plaidItems.each do |item| # get data for each and rack em up
-      # byebug
       user = item.user # owner of plaid item
       transactions << getTransactions(item.p_access_token, user)
       accounts << getBalances(item.p_access_token, user)
@@ -80,7 +79,12 @@ class PlaidController < ApplicationController
     begin
       product_response = @@client.transactions.get(access_token, thirty_days_ago, now)
       # map user into each transaction object 
-      transactions = product_response
+      transactions = product_response.transactions.map do |transaction| 
+        transaction[:user] = {username: user.username, id: user.id} # add a user key and set it to the owner
+        # well this overwrote the whole transaction with user
+        transaction
+      end
+      # transactions = product_response
     rescue Plaid::PlaidAPIError => e
       error_response = format_error(e)
       transactions =  error_response
@@ -92,8 +96,11 @@ class PlaidController < ApplicationController
     begin
       product_response = @@client.accounts.balance.get(access_token)
       # map user into each transaction object 
-
-      balances = product_response
+      balances = product_response.accounts.map do |account| 
+        account[:user] = {username: user.username, id: user.id}
+        account
+      end
+      # balances = product_response
     rescue Plaid::PlaidAPIError => e
       error_response = format_error(e)
       balances = error_response
