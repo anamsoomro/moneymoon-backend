@@ -7,6 +7,7 @@ class UsersController < ApplicationController
   def create 
     user = User.new(user_params) #create user object
     if user.valid? # check validations 
+      # user.valid is false here
       user.save # its good, put it in the database 
       account = Account.create() # give them a new account
       user.update(account_id: account.id) # associate that account
@@ -18,7 +19,9 @@ class UsersController < ApplicationController
         token: encode_token({user_id: user.id}) # and give them a token authorizing them for the rest of app 
       }, status: :created
     else
-      render json: {error: "Failed to create a user"}, status: :not_acceptable
+      # render json: {error: "Failed to create a user"}, status: :not_acceptable
+      render json: user.errors.messages, status: :not_acceptable
+
     end
   end
 

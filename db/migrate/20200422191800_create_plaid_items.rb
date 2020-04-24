@@ -4,7 +4,6 @@ class CreatePlaidItems < ActiveRecord::Migration[6.0]
 
       t.integer :user_id 
       
-      # this needs an access token
       t.string :p_access_token
       t.string :p_item_id
 

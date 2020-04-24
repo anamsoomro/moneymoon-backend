@@ -53,10 +53,10 @@ class PlaidController < ApplicationController
     end
     
     render json: {transactions: transactions, accounts: accounts}
-  end
+  end                       
 
 
-  # on user logging in 
+  # on page load
   def getData
     # account will have many institutions
     # need to make fetch for each institution and consolidate 
@@ -65,28 +65,34 @@ class PlaidController < ApplicationController
     account = Account.find(params['id']) # get their account
     plaidItems = account.plaid_items # get all items related to their account
     plaidItems.each do |item| # get data for each and rack em up
-      transactions << getTransactions(item.p_access_token)
-      accounts << getBalances(item.p_access_token)
+      # byebug
+      user = item.user # owner of plaid item
+      transactions << getTransactions(item.p_access_token, user)
+      accounts << getBalances(item.p_access_token, user)
     end
+    # if no plaid items {trans: [], accounts: []}
     render json: {transactions: transactions, accounts: accounts}
   end
 
-  def getTransactions(access_token)
+  def getTransactions(access_token, user)
     now = Date.today
     thirty_days_ago = (now - 30)
     begin
-    product_response = @@client.transactions.get(access_token, thirty_days_ago, now)
-    transactions = product_response
+      product_response = @@client.transactions.get(access_token, thirty_days_ago, now)
+      # map user into each transaction object 
+      transactions = product_response
     rescue Plaid::PlaidAPIError => e
-    error_response = format_error(e)
-    transactions =  error_response
+      error_response = format_error(e)
+      transactions =  error_response
     end
     return transactions 
   end
 
-  def getBalances(access_token)
+  def getBalances(access_token, user)
     begin
       product_response = @@client.accounts.balance.get(access_token)
+      # map user into each transaction object 
+
       balances = product_response
     rescue Plaid::PlaidAPIError => e
       error_response = format_error(e)
