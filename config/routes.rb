@@ -8,6 +8,8 @@ Rails.application.routes.draw do
   post "/get_access_token", to: "plaid#getAccessToken"
   # https://www.keycdn.com/support/422-unprocessable-entity
 
+  get "/accounts/:id/get_data", to: "plaid#getData"
+
   get "/transactions", to: "plaid#getTransactions"
 
   post "/login", to: "auth#create"

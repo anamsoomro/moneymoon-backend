@@ -15,7 +15,7 @@ class PlaidController < ApplicationController
   @@item_id = nil
 
 
-  # on user adding new institution
+  # on user adding new institution 
   def getAccessToken 
     # get access
     exchange_token_response = @@client.item.public_token.exchange(params['public_token'])
@@ -51,25 +51,31 @@ class PlaidController < ApplicationController
       error_response = format_error(e)
       accounts = error_response
     end
-
+    
     render json: {transactions: transactions, accounts: accounts}
   end
 
-  def getAccountData
+
+  # on user logging in 
+  def getData
     # account will have many institutions
-    # need to make fetch for each instiitution and consolidate 
-    user = User.find(params['user_id']) # no i need to get the account account.plaid_items
-    user.plaid_items
+    # need to make fetch for each institution and consolidate 
+    transactions = []
+    accounts = []
+    account = Account.find(params['id']) # get their account
+    plaidItems = account.plaid_items # get all items related to their account
+    plaidItems.each do |item| # get data for each and rack em up
+      transactions << getTransactions(item.p_access_token)
+      accounts << getBalances(item.p_access_token)
+    end
+    render json: {transactions: transactions, accounts: accounts}
   end
-
-
-  # on login im going to want to getTransactioins and balances with a user's access token 
 
   def getTransactions(access_token)
     now = Date.today
     thirty_days_ago = (now - 30)
     begin
-    product_response = @@client.transactions.get(@@access_token, thirty_days_ago, now)
+    product_response = @@client.transactions.get(access_token, thirty_days_ago, now)
     transactions = product_response
     rescue Plaid::PlaidAPIError => e
     error_response = format_error(e)
@@ -79,7 +85,6 @@ class PlaidController < ApplicationController
   end
 
   def getBalances(access_token)
-    # THIS DOESNT HAVE A ROUTE. ITS FOR REF RIGHT NOW 
     begin
       product_response = @@client.accounts.balance.get(access_token)
       balances = product_response
