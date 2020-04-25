@@ -9,12 +9,6 @@ class ApplicationController < ActionController::Base
   # now run this before all the pages 
   def logged_in? 
     headers = request.headers["Authorization"]  # get authorization: Bearer <token>
-    # byebug
-
-    # need to handle if there is no headers ?
-    # token = headers.split(" ")[1] # NoMethodError (undefined method `split' for nil:NilClass):
-
-    # if there is a headers
     token = headers.split(" ")[1] 
     begin 
       user_id = JWT.decode(token, "lilo")[0]["user_id"] # decode token to get that original payload object of user_id

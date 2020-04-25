@@ -13,6 +13,7 @@
 ActiveRecord::Schema.define(version: 2020_04_22_191806) do
 
   create_table "accounts", force: :cascade do |t|
+    t.string "code"
   end
 
   create_table "plaid_accounts", force: :cascade do |t|
