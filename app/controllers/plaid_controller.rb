@@ -3,6 +3,8 @@ require 'date'
 class PlaidController < ApplicationController
 
   skip_before_action :verify_authenticity_token # https://stackoverflow.com/questions/27098239/post-422-unprocessable-entity-in-rails-due-to-the-routes-or-the-controller
+  skip_before_action :logged_in?, only: [:assets] # im testing
+
 
   # i think im suppose to put this somewhere else 
   @@client = Plaid::Client.new(env: :sandbox,
@@ -107,6 +109,53 @@ class PlaidController < ApplicationController
     end
     return balances
   end
+
+
+  # NOT SETUP RIGHT.
+  # MAYBE I JUST TRACK BALANCE SINCE THEYVE LOGGED IN 
+  def assets
+    begin
+      asset_report_create_response =
+        @@client.asset_report.create(["access-sandbox-44d4dfbd-9bbf-43a5-84bb-8800ad8dfa53"], 10, {})
+        byebug
+      render json: asset_report_create_response
+    rescue Plaid::PlaidAPIError => e
+      error_response = format_error(e)
+      render json: error_response
+    end
+  
+    asset_report_token = asset_report_create_response['asset_report_token']
+  
+    asset_report_json = nil
+    num_retries_remaining = 20
+    while num_retries_remaining > 0
+      begin
+        asset_report_get_response = @@client.asset_report.get(asset_report_token)
+        asset_report_json = asset_report_get_response['report']
+        break
+      rescue Plaid::PlaidAPIError => e
+        if e.error_code == 'PRODUCT_NOT_READY'
+          num_retries_remaining -= 1
+          sleep(1)
+          next
+        end
+        error_response = format_error(e)
+        render json: error_response
+      end
+    end
+  
+    if asset_report_json.nil?
+      render json: {
+        error: {
+          error_code: 0,
+          error_message: 'Timed out when polling for Asset Report'
+        }
+      }
+    end
+
+  end
+
+
 
 
   def format_error(err)

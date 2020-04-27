@@ -15,4 +15,6 @@ Rails.application.routes.draw do
   post "/login", to: "auth#create"
   # sign up is post "/users"
 
+  get "/assets", to: "plaid#assets"
+
 end
