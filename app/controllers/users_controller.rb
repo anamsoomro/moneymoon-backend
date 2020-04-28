@@ -11,7 +11,7 @@ class UsersController < ApplicationController
     elsif params['account_code'] != "" # if have a code find that account
       account = Account.find_by(code: params['account_code'])
       unless account 
-        render json: {error: "that account id was not found"}
+        render json: {error: "that account id was not found"} # THIS DOESNT RENDER AND IT KEEPS READING
       end
     end
     user = User.new({username: user_params['username'], password: user_params['password'], email: user_params['email'], account_id: account.id}) # make user object 
