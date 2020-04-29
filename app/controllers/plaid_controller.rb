@@ -12,15 +12,9 @@ class PlaidController < ApplicationController
                              secret: "513e54a8369a1359eea03efcdca830",
                              public_key: "38e9fa8478f20a384db53c1176e9b7")
 
-  @@access_token = nil
-
-  @@item_id = nil
-
   # on user adding new institution 
   def getAccessToken 
     exchange_token_response = @@client.item.public_token.exchange(params['public_token']) # get access
-    #  everytime you link it, it gives a new access token a new item_id?? 
-    # "{"access_token":"access-sandbox-35cda5a6-fa6e-4aab-96ae-7c7d2e182533","item_id":"X49RJrkwmEhkMxD8brZyhznPWzgdL8fdKpxBX","request_id":"RfhSal2vZKKEkc7"}"
     access_token = exchange_token_response['access_token']
     item_id = exchange_token_response['item_id']
 
@@ -29,39 +23,18 @@ class PlaidController < ApplicationController
     pi = PlaidItem.create({
       p_access_token: access_token,
       user_id: user.id,
-      p_item_id: item_id
+      p_item_id: item_id, 
+      p_institution: params['institution'] 
     })
-
-    # get last 30 days of transactions from all accounts in item
-    now = Date.today
-    thirty_days_ago = (now - 30)
-    begin
-      product_response = @@client.transactions.get(access_token, thirty_days_ago, now)
-      transactions = product_response.transactions.map do |transaction|
-        transaction[:user] = {username: user.username, id: user.id}
-        transaction
-      end
-    rescue Plaid::PlaidAPIError => e
-      error_response = format_error(e)
-      transactions = error_response
-    end
-
-    #get balances for each account of an item
-    begin
-      product_response = @@client.accounts.balance.get(access_token)
-      accounts = product_response.accounts.map do |account|
-        account[:user] = {username: user.username, id: user.id}
-        account
-      end
-    rescue Plaid::PlaidAPIError => e
-      error_response = format_error(e)
-      accounts = error_response
-    end
-
+    transactions = getTransactions(pi, user)
+    accounts = getBalances(pi, user)
     render json: {transactions: transactions, accounts: accounts}
   end                       
 
 
+  # ohh this could be a Promise.all
+  # but also i can make these two separate calls
+  # call accounts, store acccounts, call transactions, store transactions
   # on dash page load
   def getData # account will have many institutions. make fetch for each institution and consolidate 
     transactions = []
@@ -70,23 +43,22 @@ class PlaidController < ApplicationController
     plaidItems = account.plaid_items # get all items related to their account
     plaidItems.each do |item| # get data for each and rack em up
       user = item.user # owner of plaid item
-      transactions << getTransactions(item.p_access_token, user)
-      accounts << getBalances(item.p_access_token, user)
+      transactions << getTransactions(item, user)
+      accounts << getBalances(item, user)
     end
     # if no plaid items {trans: [], accounts: []}
     render json: {transactions: transactions, accounts: accounts}
   end
 
-  # ohh this could be a Promise.all
-  # but also i can make these two separate calls
-  # call accounts, store acccounts, call transactions, store transactions
-  def getTransactions(access_token, user)
+
+  def getTransactions(item, user)
     now = Date.today
     thirty_days_ago = (now - 30)
     begin
-      product_response = @@client.transactions.get(access_token, thirty_days_ago, now)
+      product_response = @@client.transactions.get(item.p_access_token, thirty_days_ago, now)
       transactions = product_response.transactions.map do |transaction|  # map user into each transaction object 
         transaction[:user] = {username: user.username, id: user.id} # add a user key and set it to the owner
+        transaction[:institution] = item.p_institution # add institution name
         transaction
       end
     rescue Plaid::PlaidAPIError => e
@@ -96,11 +68,12 @@ class PlaidController < ApplicationController
     return transactions 
   end
 
-  def getBalances(access_token, user)
+  def getBalances(item, user)
     begin
-      product_response = @@client.accounts.balance.get(access_token)
+      product_response = @@client.accounts.balance.get(item.p_access_token)
       balances = product_response.accounts.map do |account| 
         account[:user] = {username: user.username, id: user.id}
+        account[:institution] = item.p_institution
         account
       end
     rescue Plaid::PlaidAPIError => e
@@ -112,7 +85,7 @@ class PlaidController < ApplicationController
 
 
   # NOT SETUP RIGHT.
-  # MAYBE I JUST TRACK BALANCE SINCE THEYVE LOGGED IN 
+  # MAYBE I JUST TRACK BALANCE SINCE THEYVE SIGNED UP 
   def assets
     begin
       asset_report_create_response =
@@ -156,8 +129,6 @@ class PlaidController < ApplicationController
   end
 
 
-
-
   def format_error(err)
     { error: {
         error_code: err.error_code,
@@ -166,5 +137,10 @@ class PlaidController < ApplicationController
       }
     }
   end
+
+  def strong_params
+    params.permit(:institution)
+  end
+
 
 end

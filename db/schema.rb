@@ -29,6 +29,7 @@ ActiveRecord::Schema.define(version: 2020_04_22_191806) do
     t.integer "user_id"
     t.string "p_access_token"
     t.string "p_item_id"
+    t.string "p_institution"
   end
 
   create_table "users", force: :cascade do |t|
