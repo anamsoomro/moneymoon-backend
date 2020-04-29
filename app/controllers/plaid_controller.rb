@@ -59,6 +59,8 @@ class PlaidController < ApplicationController
       transactions = product_response.transactions.map do |transaction|  # map user into each transaction object 
         transaction[:user] = {username: user.username, id: user.id} # add a user key and set it to the owner
         transaction[:institution] = item.p_institution # add institution name
+        transaction[:item_id] = item.p_item_id
+
         transaction
       end
     rescue Plaid::PlaidAPIError => e
@@ -74,6 +76,7 @@ class PlaidController < ApplicationController
       balances = product_response.accounts.map do |account| 
         account[:user] = {username: user.username, id: user.id}
         account[:institution] = item.p_institution
+        account[:item_id] = item.p_item_id
         account
       end
     rescue Plaid::PlaidAPIError => e
@@ -116,25 +119,23 @@ class PlaidController < ApplicationController
         render json: error_response
       end
     end
-  
-    if asset_report_json.nil?
-      render json: {
-        error: {
-          error_code: 0,
-          error_message: 'Timed out when polling for Asset Report'
-        }
-      }
-    end
+  end
 
+  def deleteItem 
+    item = PlaidItem.find_by(p_item_id: params[:id])
+    item_id = item.p_item_id
+    @@client.item.remove(item.p_access_token)
+    item.destroy()
+    render json: {item_id: item_id}
   end
 
 
   def format_error(err)
     { error: {
-        error_code: err.error_code,
-        error_message: err.error_message,
-        error_type: err.error_type
-      }
+      error_code: err.error_code,
+      error_message: err.error_message,
+      error_type: err.error_type
+     }
     }
   end
 

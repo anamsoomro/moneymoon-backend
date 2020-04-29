@@ -17,4 +17,6 @@ Rails.application.routes.draw do
 
   get "/assets", to: "plaid#assets"
 
+  delete "/remove_bank/:id", to: "plaid#deleteItem"
+
 end
