@@ -26,11 +26,17 @@ class UsersController < ApplicationController
     else
       render json: user.errors.messages, status: :not_acceptable
     end
+
   end
 
   def index 
     users = User.all
     render json: users
+  end
+
+  def invite 
+    resp = UserMailer.with(user: params[:username], email: params[:email]).welcome_email.deliver # it says its delievering but. do i have to send from a valid email
+    render json: resp
   end
 
   private

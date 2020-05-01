@@ -47,3 +47,4 @@ gem 'rack-cors'
 gem "plaid"
 gem "bcrypt"
 gem "jwt"
+gem 'figaro'

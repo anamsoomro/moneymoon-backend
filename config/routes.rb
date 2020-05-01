@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   resources :plaid_accounts
   resources :plaid_items
+
   resources :users
   resources :accounts
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
@@ -18,5 +19,10 @@ Rails.application.routes.draw do
   get "/assets", to: "plaid#assets"
 
   delete "/remove_bank/:id", to: "plaid#deleteItem"
+
+  post "/invite", to: "users#invite"
+
+  post "/month_transactions", to: "plaid#transactionsForMonth"
+
 
 end
