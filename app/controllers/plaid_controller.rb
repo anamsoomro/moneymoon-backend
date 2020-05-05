@@ -42,8 +42,8 @@ class PlaidController < ApplicationController
       transactions << getTransactions(item, user)
       accounts << getBalances(item, user)
     end
-    # if no plaid items {trans: [], accounts: []}
-    render json: {transactions: transactions, accounts: accounts}
+    # if no plaid items {trans: [], accounts: []}, each item is an array. 
+    render json: {transactions: transactions.flatten, accounts: accounts.flatten}
   end
 
 
@@ -62,7 +62,7 @@ class PlaidController < ApplicationController
       error_response = format_error(e)
       transactions =  error_response
     end
-    return transactions 
+    return transactions # [ {trans}, {trans}, {trans}]
   end
 
 
@@ -80,7 +80,7 @@ class PlaidController < ApplicationController
       error_response = format_error(e)
       balances = error_response
     end
-    return balances
+    return balances # [ {acc}, {acc}, {acc}] 
   end
 
 
@@ -109,7 +109,7 @@ class PlaidController < ApplicationController
       end
       transactions << productTransactions
     end
-    render json: transactions
+    render json: transactions.flatten
   end
 
   # # NOT SETUP RIGHT.
@@ -118,7 +118,6 @@ class PlaidController < ApplicationController
   #   begin
   #     asset_report_create_response =
   #       @@client.asset_report.create(["access-sandbox-44d4dfbd-9bbf-43a5-84bb-8800ad8dfa53"], 10, {})
-  #       byebug
   #     render json: asset_report_create_response
   #   rescue Plaid::PlaidAPIError => e
   #     error_response = format_error(e)
