@@ -14,7 +14,7 @@ class AuthController < ApplicationController
         token: encode_token({user_id: user.id}) # and give them a token authorizing them for the rest of app 
       }
     else 
-      render json: {error: "invalid username or password"}
+      render json: {error: "wrong credentials, please try again"}
     end
   end
 

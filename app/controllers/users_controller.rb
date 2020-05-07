@@ -6,14 +6,16 @@ class UsersController < ApplicationController
   skip_before_action :verify_authenticity_token # https://stackoverflow.com/questions/27098239/post-422-unprocessable-entity-in-rails-due-to-the-routes-or-the-controller
 
   def create 
-    if params['account_code'] == "" # if no code, make them a new account
+    if params['account_code'] == "" 
       account = Account.create({code: SecureRandom.uuid})
-    elsif params['account_code'] != "" # if have a code find that account
+    elsif params['account_code'] != "" 
       account = Account.find_by(code: params['account_code'])
       unless account 
-        render json: {error: "that account id was not found"} # THIS DOESNT RENDER AND IT KEEPS READING
+        return render json: ["Invalid account code"]
       end
     end
+
+
     user = User.new({username: user_params['username'], password: user_params['password'], email: user_params['email'], account_id: account.id}) # make user object 
     if user.valid? 
       user.account_id = account.id # link it with account
@@ -24,7 +26,8 @@ class UsersController < ApplicationController
         token: encode_token({user_id: user.id}) # and give them a token authorizing them for the rest of app 
       }, status: :created
     else
-      render json: user.errors.messages, status: :not_acceptable
+      render json: user.errors.full_messages, status: :not_acceptable
+      # if user is taken ["Username has already been taken"]
     end
 
   end
