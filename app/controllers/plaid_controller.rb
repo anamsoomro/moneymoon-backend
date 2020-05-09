@@ -7,11 +7,10 @@ class PlaidController < ApplicationController
 
 
 # put it in application.yml its gitignored too. 
-  # i think im suppose to put this somewhere else 
-  @@client = Plaid::Client.new(env: :sandbox,
-                             client_id: "5e9b96c18a49a900129cd1f3",
-                             secret: "513e54a8369a1359eea03efcdca830",
-                             public_key: "38e9fa8478f20a384db53c1176e9b7")
+@@client = Plaid::Client.new(env: :sandbox,
+                            client_id: "5e9b96c18a49a900129cd1f3",
+                            secret: "513e54a8369a1359eea03efcdca830",
+                            public_key: "38e9fa8478f20a384db53c1176e9b7")
 
   # on user adding new institution 
   def getAccessToken 
@@ -31,7 +30,6 @@ class PlaidController < ApplicationController
     render json: {transactions: transactions, accounts: accounts}
   end                       
 
-  # ohh this could be a Promise.all but also i can make these two separate calls call accounts, store acccounts, call transactions, store transactions on dash page load
   def getData # account will have many institutions. make fetch for each institution and consolidate 
     accounts = []
     transactions = []
@@ -84,13 +82,13 @@ class PlaidController < ApplicationController
   end
 
 
-  # this should be refactored with above 
+  # come back to refactor this with above
   def transactionsForMonth
     transactions = []
     year = 2020
     month = params[:month].to_i
     month_start = Date.new(year, month, 1)  #=> #<Date: 2017-05-01 ...>
-    month_end = Date.new(year, month, -1) #=> #<Date: 2017-05-31 ...>
+    month_end = Date.new(year, month, -1) 
     account = Account.find(params['account_id'])
     plaidItems = account.plaid_items
     plaidItems.each do |item|
@@ -111,39 +109,6 @@ class PlaidController < ApplicationController
     end
     render json: transactions.flatten
   end
-
-  # # NOT SETUP RIGHT.
-  # # MAYBE I JUST TRACK BALANCE SINCE THEYVE SIGNED UP 
-  # def assets
-  #   begin
-  #     asset_report_create_response =
-  #       @@client.asset_report.create(["access-sandbox-44d4dfbd-9bbf-43a5-84bb-8800ad8dfa53"], 10, {})
-  #     render json: asset_report_create_response
-  #   rescue Plaid::PlaidAPIError => e
-  #     error_response = format_error(e)
-  #     render json: error_response
-  #   end
-  
-  #   asset_report_token = asset_report_create_response['asset_report_token']
-  
-  #   asset_report_json = nil
-  #   num_retries_remaining = 20
-  #   while num_retries_remaining > 0
-  #     begin
-  #       asset_report_get_response = @@client.asset_report.get(asset_report_token)
-  #       asset_report_json = asset_report_get_response['report']
-  #       break
-  #     rescue Plaid::PlaidAPIError => e
-  #       if e.error_code == 'PRODUCT_NOT_READY'
-  #         num_retries_remaining -= 1
-  #         sleep(1)
-  #         next
-  #       end
-  #       error_response = format_error(e)
-  #       render json: error_response
-  #     end
-  #   end
-  # end
 
   def deleteItem 
     item = PlaidItem.find_by(p_item_id: params[:id])
