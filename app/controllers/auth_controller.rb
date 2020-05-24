@@ -1,7 +1,7 @@
 class AuthController < ApplicationController
 
   skip_before_action :verify_authenticity_token
-  skip_before_action :logged_in?, only: [:create] # no auth to sign in 
+  skip_before_action :logged_in?, only: [:create] 
 
 
   def create 
@@ -10,7 +10,7 @@ class AuthController < ApplicationController
       account = user.account
       render json: {
         user: {username: user.username, id: user.id},
-        account: {id: account.id, code: account.code, users: account.users}, #UH OH info load
+        account: {id: account.id, code: account.code, users: account.users}, 
         token: encode_token({user_id: user.id}) # and give them a token authorizing them for the rest of app 
       }
     else 

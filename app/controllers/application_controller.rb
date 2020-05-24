@@ -3,7 +3,7 @@ class ApplicationController < ActionController::Base
   before_action :logged_in?
 
   def encode_token(payload) # payload is object of user_id
-    JWT.encode(payload, "lilo") # can put an optional algo if dont want to use "HS256"
+    JWT.encode(payload, "lilo") 
   end
   
   # now run this before all the pages 

@@ -3,14 +3,14 @@ require 'date'
 class PlaidController < ApplicationController
 
   skip_before_action :verify_authenticity_token # https://stackoverflow.com/questions/27098239/post-422-unprocessable-entity-in-rails-due-to-the-routes-or-the-controller
-  skip_before_action :logged_in?, only: [:assets] # im testing
+  skip_before_action :logged_in?, only: [:assets] # testing
 
 
-# put it in application.yml its gitignored too. 
+
 @@client = Plaid::Client.new(env: :sandbox,
-                            client_id: "5e9b96c18a49a900129cd1f3",
-                            secret: "513e54a8369a1359eea03efcdca830",
-                            public_key: "38e9fa8478f20a384db53c1176e9b7")
+                              client_id: ENV["CLIENT_ID"],
+                              secret: ENV["SECRET"],
+                              public_key: ENV["PUBLIC_KEY"])
 
   # on user adding new institution 
   def getAccessToken 
@@ -82,7 +82,6 @@ class PlaidController < ApplicationController
   end
 
 
-  # come back to refactor this with above
   def transactionsForMonth
     transactions = []
     year = 2020

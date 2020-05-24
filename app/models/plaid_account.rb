@@ -1,3 +1,0 @@
-class PlaidAccount < ApplicationRecord
-  
-end

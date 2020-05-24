@@ -10,19 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_22_191806) do
+ActiveRecord::Schema.define(version: 2020_05_24_041101) do
 
   create_table "accounts", force: :cascade do |t|
     t.string "code"
-  end
-
-  create_table "plaid_accounts", force: :cascade do |t|
-    t.integer "plaid_item_id"
-    t.string "p_account_id"
-    t.string "p_name"
-    t.string "p_mask"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "plaid_items", force: :cascade do |t|
