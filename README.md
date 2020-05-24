@@ -10,14 +10,14 @@ gem install
 ```
 
 ## database: 
-to create database and tables 
+to create database and tables
 ```
 rails db:migrate
 ```
 
 ## plaid
 to link financial institutions, [sign up with Plaid](https://dashboard.plaid.com/signup). 
-in 'config/application.yml' store your client_id, secret and public_key
+in 'config/application.yml' store your client_id, secret and public_key.
 ```
 CLIENT_ID: xxxxxxxxxxxxxxxxxxxxxxxx
 SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -25,8 +25,8 @@ PUBLIC_KEY: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 ## running 
-to run the server 
 ```
 rails s
 ```
-you can now set up your [frontend](https://github.com/anamsoomro/moneymoon-frontend). 
+after running the server, you can now set up your [frontend](https://github.com/anamsoomro/moneymoon-frontend). 
+
