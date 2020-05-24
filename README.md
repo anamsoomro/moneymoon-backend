@@ -1,24 +1,32 @@
-# README
+# MONEYMOON
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Personal finance application for couples to track their financial health, spending habits and ooverall trends together.
 
-Things you may want to cover:
+Created using Ruby on Rails and the Plaid API.
 
-* Ruby version
+## dependencies: 
+```
+gem install 
+```
 
-* System dependencies
+## database: 
+to create database and tables 
+```
+rails db:migrate
+```
 
-* Configuration
+## plaid
+to link financial institutions, [sign up with Plaid](https://dashboard.plaid.com/signup). 
+in 'config/application.yml' store your client_id, secret and public_key
+```
+CLIENT_ID: xxxxxxxxxxxxxxxxxxxxxxxx
+SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+PUBLIC_KEY: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
 
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+## running 
+to run the server 
+```
+rails s
+```
+you can now set up your [frontend](https://github.com/anamsoomro/moneymoon-frontend). 
